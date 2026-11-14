@@ -15,6 +15,14 @@ const messageSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  isVoiceMessage: {
+    type: Boolean,
+    default: false,
+  },
+  audioDuration: {
+    type: Number,
+    default: 0,
+  },
   timestamp: {
     type: Date,
     default: Date.now,
@@ -118,7 +126,6 @@ const ticketSchema = new mongoose.Schema(
   }
 );
 
-// Pre-save hook to generate ticket number like TKT-1001
 ticketSchema.pre('save', async function (next) {
   if (!this.ticketNumber) {
     const count = await mongoose.model('Ticket').countDocuments();

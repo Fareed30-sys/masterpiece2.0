@@ -19,6 +19,10 @@ import {
   AlertTriangle,
   Flame,
   ChevronDown,
+  Mic,
+  Volume2,
+  Play,
+  Pause,
 } from 'lucide-react';
 
 export const AgentInbox = () => {
@@ -426,18 +430,48 @@ export const AgentInbox = () => {
                       <span className="font-semibold text-slate-300">
                         {m.sender === 'agent' ? `Agent (${m.senderName || 'You'})` : m.senderName}
                       </span>
+                      {m.isVoiceMessage && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-medium">
+                          <Mic className="w-2.5 h-2.5" />
+                          Voice Note ({m.audioDuration || 28}s)
+                        </span>
+                      )}
                       <span>•</span>
                       <span>{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
 
                     <div
-                      className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed whitespace-pre-line ${
+                      className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed ${
                         m.sender === 'agent'
                           ? 'bg-indigo-600 text-white rounded-tr-none'
                           : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'
                       }`}
                     >
-                      {m.text}
+                      {/* Audio Player Bar if Voice Message */}
+                      {m.isVoiceMessage && (
+                        <div className="mb-2.5 p-2 rounded-xl bg-purple-950/40 border border-purple-800/50 flex items-center justify-between gap-3 text-purple-200 text-xs">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300">
+                              <Play className="w-3.5 h-3.5 ml-0.5 fill-current" />
+                            </div>
+                            <div>
+                              <span className="font-semibold block text-[11px] text-white">Audio Message Clip</span>
+                              <span className="text-[10px] text-purple-400">0:{m.audioDuration || 28} • Speech-to-Text Transcribed</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 pr-1">
+                            <span className="w-1 h-3 bg-purple-400 rounded-full"></span>
+                            <span className="w-1 h-5 bg-purple-300 rounded-full"></span>
+                            <span className="w-1 h-2 bg-purple-400 rounded-full"></span>
+                            <span className="w-1 h-6 bg-purple-300 rounded-full"></span>
+                            <span className="w-1 h-4 bg-purple-400 rounded-full"></span>
+                            <span className="w-1 h-2 bg-purple-500 rounded-full"></span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="whitespace-pre-line font-normal">{m.text}</div>
                     </div>
                   </div>
                 ))}

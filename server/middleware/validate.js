@@ -42,14 +42,18 @@ export const loginSchema = z.object({
 
 export const createTicketSchema = z.object({
   subject: z.string().min(3, 'Subject must be at least 3 characters').max(200),
-  message: z.string().min(5, 'Initial message must be at least 5 characters'),
+  message: z.string().min(3, 'Initial message must be at least 3 characters'),
   category: z.enum(['Billing', 'Technical Issue', 'Feature Request', 'Shipping/Delivery', 'Account']).optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().default('medium'),
+  isVoiceMessage: z.boolean().optional().default(false),
+  audioDuration: z.number().optional().default(0),
 });
 
 export const addMessageSchema = z.object({
   text: z.string().min(1, 'Message text cannot be empty'),
   sender: z.enum(['customer', 'agent', 'ai']).optional(),
+  isVoiceMessage: z.boolean().optional().default(false),
+  audioDuration: z.number().optional().default(0),
 });
 
 export const updateTicketSchema = z.object({

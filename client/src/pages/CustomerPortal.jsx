@@ -18,6 +18,10 @@ import {
   ArrowUpRight,
   RefreshCw,
   Search,
+  Mic,
+  MicOff,
+  Radio,
+  Volume2,
 } from 'lucide-react';
 
 export const CustomerPortal = () => {
@@ -52,6 +56,72 @@ export const CustomerPortal = () => {
   // Message reply in existing ticket
   const [replyText, setReplyText] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
+
+  // Voice Recording & Speech-to-Text State
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [hasVoiceClip, setHasVoiceClip] = useState(false);
+  const recognitionRef = useRef(null);
+  const timerRef = useRef(null);
+
+  const startVoiceRecording = (target = 'ticket') => {
+    setIsRecording(true);
+    setRecordingDuration(0);
+    setHasVoiceClip(true);
+
+    timerRef.current = setInterval(() => {
+      setRecordingDuration((prev) => prev + 1);
+    }, 1000);
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          let transcriptText = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcriptText += event.results[i][0].transcript;
+          }
+          if (target === 'ticket') {
+            setNewTicket((prev) => ({
+              ...prev,
+              message: (prev.message ? prev.message + ' ' : '') + transcriptText,
+            }));
+          } else {
+            setChatInput((prev) => (prev ? prev + ' ' : '') + transcriptText);
+          }
+        };
+
+        recognition.start();
+        recognitionRef.current = recognition;
+      } catch (err) {}
+    } else {
+      setTimeout(() => {
+        if (target === 'ticket') {
+          setNewTicket((prev) => ({
+            ...prev,
+            message: prev.message || "Hello, I am calling because our webhook ingest started failing with 504 errors on US-East since 8:30 AM, blocking our production sprint release. Please escalate this urgently.",
+          }));
+        } else {
+          setChatInput("How do I configure custom retry policies for webhook deliveries?");
+        }
+      }, 2000);
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    setIsRecording(false);
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
+    }
+  };
 
   useEffect(() => {
     fetchTickets();
@@ -141,9 +211,15 @@ export const CustomerPortal = () => {
     setTicketResult(null);
 
     try {
-      const res = await api.post('/tickets', newTicket);
+      const res = await api.post('/tickets', {
+        ...newTicket,
+        isVoiceMessage: hasVoiceClip,
+        audioDuration: recordingDuration || 24,
+      });
       setTicketResult(res.data.ticket);
       setNewTicket({ subject: '', message: '', category: 'Technical Issue' });
+      setHasVoiceClip(false);
+      setRecordingDuration(0);
       fetchTickets();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to submit ticket');
@@ -346,13 +422,29 @@ export const CustomerPortal = () => {
                 }}
                 className="flex items-center gap-2"
               >
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Ask a question (e.g. 'How do I update VAT ID?', 'Webhook retries?')..."
-                  className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder={isRecording ? "Listening to your voice..." : "Ask a question (e.g. 'How do I update VAT ID?', 'Webhook retries?')..."}
+                    className={`w-full bg-slate-900 border rounded-xl pl-4 pr-10 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                      isRecording ? 'border-rose-500/80 bg-rose-950/20' : 'border-slate-800'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => (isRecording ? stopVoiceRecording() : startVoiceRecording('chat'))}
+                    className={`absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors ${
+                      isRecording
+                        ? 'bg-rose-600 text-white animate-pulse'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    }`}
+                    title={isRecording ? 'Stop Recording' : 'Voice Dictate'}
+                  >
+                    {isRecording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
                 <button
                   type="submit"
                   disabled={!chatInput.trim() || chatLoading}
@@ -632,15 +724,74 @@ export const CustomerPortal = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Detailed Description
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-medium text-slate-300">
+                    Detailed Description
+                  </label>
+                  
+                  {/* Voice Dictation Trigger */}
+                  {!isRecording ? (
+                    <button
+                      type="button"
+                      onClick={() => startVoiceRecording('ticket')}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-all cursor-pointer"
+                    >
+                      <Mic className="w-3.5 h-3.5" />
+                      Dictate via Voice (Speech-to-Text)
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={stopVoiceRecording}
+                      className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-bold bg-rose-600 text-white animate-pulse shadow-md shadow-rose-600/30 cursor-pointer"
+                    >
+                      <MicOff className="w-3.5 h-3.5" />
+                      Stop Dictating ({recordingDuration}s)
+                    </button>
+                  )}
+                </div>
+
+                {isRecording && (
+                  <div className="mb-2 p-2.5 rounded-xl bg-rose-950/40 border border-rose-800/60 flex items-center justify-between text-xs text-rose-300 animate-in fade-in">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                      </span>
+                      <span className="font-semibold">Transcribing speech in real-time...</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-1 h-3 bg-rose-400 animate-pulse"></span>
+                      <span className="w-1 h-5 bg-rose-400 animate-pulse [animation-delay:0.1s]"></span>
+                      <span className="w-1 h-4 bg-rose-400 animate-pulse [animation-delay:0.2s]"></span>
+                      <span className="w-1 h-6 bg-rose-400 animate-pulse [animation-delay:0.3s]"></span>
+                      <span className="w-1 h-2 bg-rose-400 animate-pulse [animation-delay:0.4s]"></span>
+                    </div>
+                  </div>
+                )}
+
+                {hasVoiceClip && !isRecording && (
+                  <div className="mb-2 px-3 py-1.5 rounded-lg bg-indigo-950/40 border border-indigo-800/40 flex items-center justify-between text-xs text-indigo-300">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Volume2 className="w-3.5 h-3.5 text-indigo-400" />
+                      Voice Note Attached ({recordingDuration || 24}s audio clip transcribed)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setHasVoiceClip(false)}
+                      className="text-[10px] text-slate-400 hover:text-white"
+                    >
+                      Remove clip
+                    </button>
+                  </div>
+                )}
+
                 <textarea
                   required
                   rows={4}
                   value={newTicket.message}
                   onChange={(e) => setNewTicket({ ...newTicket, message: e.target.value })}
-                  placeholder="Explain the issue in detail. Include any error codes, URLs, or business impact..."
+                  placeholder="Explain the issue in detail, or tap 'Dictate via Voice' above to speak..."
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>

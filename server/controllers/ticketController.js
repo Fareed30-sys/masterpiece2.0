@@ -5,7 +5,7 @@ import memoryStore from '../services/memoryStore.js';
 
 export const createTicket = async (req, res, next) => {
   try {
-    const { subject, message, category, priority } = req.body;
+    const { subject, message, category, priority, isVoiceMessage = false, audioDuration = 0 } = req.body;
     const customerId = req.user._id || req.user.id;
     const customerName = req.user.name;
     const customerEmail = req.user.email;
@@ -33,6 +33,8 @@ export const createTicket = async (req, res, next) => {
               sender: 'customer',
               senderName: customerName,
               text: message,
+              isVoiceMessage,
+              audioDuration,
               timestamp: new Date(),
             },
           ],
@@ -58,6 +60,8 @@ export const createTicket = async (req, res, next) => {
           sender: 'customer',
           senderName: customerName,
           text: message,
+          isVoiceMessage,
+          audioDuration,
           timestamp: new Date(),
         },
       ],
@@ -148,7 +152,7 @@ export const getTicketById = async (req, res, next) => {
 
 export const addTicketMessage = async (req, res, next) => {
   try {
-    const { text, sender } = req.body;
+    const { text, sender, isVoiceMessage = false, audioDuration = 0 } = req.body;
     const messageSender = sender || (req.user.role === 'agent' ? 'agent' : 'customer');
     const senderName = req.user.name;
 
@@ -156,7 +160,14 @@ export const addTicketMessage = async (req, res, next) => {
       try {
         const ticket = await Ticket.findById(req.params.id);
         if (ticket) {
-          ticket.messages.push({ sender: messageSender, senderName, text, timestamp: new Date() });
+          ticket.messages.push({
+            sender: messageSender,
+            senderName,
+            text,
+            isVoiceMessage,
+            audioDuration,
+            timestamp: new Date(),
+          });
           if (messageSender === 'agent' && ticket.status === 'open') ticket.status = 'in_progress';
           await ticket.save();
           return res.status(200).json({ success: true, ticket });
@@ -168,6 +179,8 @@ export const addTicketMessage = async (req, res, next) => {
       sender: messageSender,
       senderName,
       text,
+      isVoiceMessage,
+      audioDuration,
     });
 
     if (!ticket) {

@@ -139,7 +139,7 @@ class MemoryStore {
     return newDoc;
   }
 
-  addMessageToTicket(id, { sender, senderName, text }) {
+  addMessageToTicket(id, { sender, senderName, text, isVoiceMessage = false, audioDuration = 0 }) {
     const ticket = this.findTicketById(id);
     if (!ticket) return null;
 
@@ -147,6 +147,8 @@ class MemoryStore {
       sender,
       senderName,
       text,
+      isVoiceMessage,
+      audioDuration,
       timestamp: new Date(),
     });
 
