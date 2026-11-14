@@ -1,0 +1,20 @@
+{
+  "name": "omnipulse-ai-workspace",
+  "version": "1.0.0",
+  "description": "OmniPulse AI - Full-Stack AI Customer Experience Platform",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "seed": "npm run seed --prefix server",
+    "build": "npm run build --prefix client"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
