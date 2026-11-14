@@ -109,7 +109,7 @@ export const CustomerPortal = () => {
         } else {
           setChatInput("How do I configure custom retry policies for webhook deliveries?");
         }
-      }, 2000);
+      }, 200);
     }
   };
 
