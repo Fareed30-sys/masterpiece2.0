@@ -18,7 +18,7 @@ export const LoginPage = () => {
 
     try {
       const user = await login(email, password);
-      if (user.role === 'agent') {
+      if (user?.role === 'agent') {
         navigate('/agent/inbox');
       } else {
         navigate('/portal');
@@ -35,13 +35,13 @@ export const LoginPage = () => {
     setLoading(true);
     try {
       const user = await login(demoEmail, 'password123');
-      if (user.role === 'agent') {
+      if (user?.role === 'agent') {
         navigate('/agent/inbox');
       } else {
         navigate('/portal');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Demo login failed');
+      setError(err.response?.data?.message || 'Failed to sign in.');
     } finally {
       setLoading(false);
     }
@@ -78,7 +78,7 @@ export const LoginPage = () => {
                 type="button"
                 onClick={() => handleDemoLogin('agent@omnipulse.ai')}
                 disabled={loading}
-                className="px-2.5 py-2 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-left transition-colors"
+                className="px-2.5 py-2 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-left transition-colors cursor-pointer"
               >
                 <div className="text-[11px] font-bold text-indigo-300 flex items-center gap-1">
                   <Shield className="w-3 h-3" /> Agent Sarah
@@ -90,7 +90,7 @@ export const LoginPage = () => {
                 type="button"
                 onClick={() => handleDemoLogin('alex.rivera@techcorp.io')}
                 disabled={loading}
-                className="px-2.5 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-left transition-colors"
+                className="px-2.5 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-left transition-colors cursor-pointer"
               >
                 <div className="text-[11px] font-bold text-emerald-300 flex items-center gap-1">
                   <User className="w-3 h-3" /> Customer Alex

@@ -7,7 +7,6 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to automatically attach JWT token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('omnipulse_token');
@@ -19,12 +18,10 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle session expiration
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear token if expired or invalid
       if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
         localStorage.removeItem('omnipulse_token');
         localStorage.removeItem('omnipulse_user');

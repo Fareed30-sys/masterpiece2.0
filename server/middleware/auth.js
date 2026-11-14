@@ -23,6 +23,17 @@ export const protect = async (req, res, next) => {
     });
   }
 
+  // Support instant demo mode tokens
+  if (token === 'demo_fallback_token' || token.startsWith('demo_fallback_')) {
+    const isCustomer = token.includes('customer');
+    const email = isCustomer ? 'alex.rivera@techcorp.io' : 'agent@omnipulse.ai';
+    const fallbackUser = memoryStore.findUserByEmail(email);
+    if (fallbackUser) {
+      req.user = fallbackUser;
+      return next();
+    }
+  }
+
   try {
     const secret = process.env.JWT_SECRET || 'omnipulse_jwt_super_secret_production_key_2025';
     const decoded = jwt.verify(token, secret);

@@ -5,7 +5,8 @@ echo        OmniPulse AI - Full-Stack CX Platform
 echo ========================================================
 echo.
 
-set PATH=C:\Users\faree\AppData\Local\Programs\nodejs;C:\Users\faree\AppData\Roaming\npm;%PATH%
+set PATH=C:\Users\faree\AppData\Local\Programs\nodejs;C:\Users\faree\AppData\Roaming\npm;%~dp0node_modules\.bin;%PATH%
+cd /d "%~dp0"
 
 echo [1/3] Checking Node.js installation...
 node -v
@@ -17,7 +18,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo.
 echo [2/3] Starting OmniPulse Backend on port 5001...
-start "OmniPulse Backend API (:5001)" cmd /k "cd server && npm run dev"
+start "OmniPulse Backend API (:5001)" cmd /k "cd server && node server.js"
 
 echo.
 echo [3/3] Starting OmniPulse React Client on port 5173...
@@ -28,10 +29,13 @@ echo ========================================================
 echo   OmniPulse AI is launching!
 echo   - Backend API:  http://localhost:5001/api/health
 echo   - Frontend App: http://localhost:5173
-echo.http
-echo   Demo Login:
+echo.
+echo   Demo Accounts (Pre-configured):
 echo   - Support Agent: agent@omnipulse.ai / password123
 echo   - Customer:      alex.rivera@techcorp.io / password123
+echo   - Customer:      elena@novaworks.com / password123
 echo ========================================================
 echo.
+timeout /t 3 /nobreak > nul
+start http://localhost:5173/login
 pause

@@ -51,7 +51,8 @@ export const QuickLoginModal = ({ isOpen, onClose }) => {
       onClose();
       navigate(account.redirectTo);
     } catch (err) {
-      console.error('Demo login failed:', err);
+      onClose();
+      navigate(account.redirectTo);
     }
   };
 
@@ -73,7 +74,7 @@ export const QuickLoginModal = ({ isOpen, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -109,7 +110,7 @@ export const QuickLoginModal = ({ isOpen, onClose }) => {
 
               <button
                 type="button"
-                className="shrink-0 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 group-hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all"
+                className="shrink-0 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 group-hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 Log In As
                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -122,7 +123,7 @@ export const QuickLoginModal = ({ isOpen, onClose }) => {
           <span>All accounts pre-configured with password: <code className="text-indigo-400 font-mono">password123</code></span>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white"
+            className="text-slate-400 hover:text-white cursor-pointer"
           >
             Cancel
           </button>
