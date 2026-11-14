@@ -27,13 +27,18 @@ export const RegisterPage = () => {
 
     try {
       const user = await register(formData);
-      if (user.role === 'agent') {
+      if (user?.role === 'agent') {
         navigate('/agent/inbox');
       } else {
         navigate('/portal');
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.message || 'Registration failed.');
+      const msg =
+        err.response?.data?.errors?.[0]?.message ||
+        err.response?.data?.message ||
+        err.message ||
+        'Registration failed. Please check details.';
+      setError(msg);
     } finally {
       setLoading(false);
     }

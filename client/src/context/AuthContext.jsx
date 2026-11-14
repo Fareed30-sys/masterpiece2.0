@@ -83,10 +83,16 @@ export const AuthProvider = ({ children }) => {
         setUser(res.data.user);
         return res.data.user;
       }
+      return res.data?.user;
     } catch (err) {
+      // If specific validation or business error from backend, rethrow so UI shows the exact message
+      if (err.response && err.response.status === 400) {
+        throw err;
+      }
+      // Network or offline fallback
       const fallbackUser = {
         id: `user_${Date.now()}`,
-        name: userData.name,
+        name: userData.name || 'New User',
         email: (userData.email || '').toLowerCase(),
         role: userData.role || 'customer',
         companyName: userData.companyName || 'Enterprise Co',
