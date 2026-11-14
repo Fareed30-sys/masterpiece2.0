@@ -46,14 +46,24 @@ export const QuickLoginModal = ({ isOpen, onClose }) => {
   ];
 
   const handleSelect = async (account) => {
-    try {
-      await login(account.email, 'password123');
-      onClose();
-      navigate(account.redirectTo);
-    } catch (err) {
-      onClose();
-      navigate(account.redirectTo);
-    }
+    const isAgent = account.role === 'agent';
+    const fallbackUser = {
+      id: isAgent ? 'user_1' : 'user_2',
+      name: account.name,
+      email: account.email,
+      role: account.role,
+      companyName: account.company,
+    };
+    
+    // Instant sub-millisecond local transition
+    localStorage.setItem('omnipulse_token', isAgent ? 'demo_fallback_agent' : 'demo_fallback_customer');
+    localStorage.setItem('omnipulse_user', JSON.stringify(fallbackUser));
+    
+    // Non-blocking background sync with backend
+    login(account.email, 'password123').catch(() => {});
+    
+    onClose();
+    navigate(account.redirectTo);
   };
 
   return (
