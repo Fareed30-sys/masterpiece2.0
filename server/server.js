@@ -73,12 +73,14 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`====================================================`);
-  console.log(`🚀 OmniPulse AI Server running on port ${PORT}`);
-  console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
-  console.log(`🔑 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`====================================================`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`====================================================`);
+    console.log(`🚀 OmniPulse AI Server running on port ${PORT}`);
+    console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
+    console.log(`🔑 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`====================================================`);
+  });
+}
 
 export default app;

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "OmniPulse AI - Full-Stack AI Customer Experience Platform",
   "private": true,
+  "type": "module",
   "workspaces": [
     "server",
     "client"
