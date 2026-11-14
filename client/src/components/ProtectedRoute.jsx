@@ -16,12 +16,11 @@ export const ProtectedRoute = ({ allowedRoles }) => {
     );
   }
 
-  if (!user) {
+  if (!user || !user.role) {
     return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // If agent tries to access customer-only or vice versa
     return <Navigate to={user.role === 'agent' ? '/agent/inbox' : '/portal'} replace />;
   }
 

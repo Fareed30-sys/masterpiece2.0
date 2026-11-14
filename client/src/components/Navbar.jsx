@@ -115,10 +115,10 @@ export const Navbar = ({ onOpenDemoModal }) => {
               >
                 <div className="flex flex-col text-right hidden sm:block">
                   <span className="text-xs font-semibold text-slate-200 leading-tight">
-                    {user.name}
+                    {user?.name || 'User'}
                   </span>
                   <span className="text-[10px] text-slate-400 flex items-center justify-end gap-1">
-                    {user.role === 'agent' ? (
+                    {user?.role === 'agent' ? (
                       <span className="text-indigo-400 font-medium">Support Agent</span>
                     ) : (
                       <span className="text-emerald-400 font-medium">Customer</span>
@@ -126,7 +126,7 @@ export const Navbar = ({ onOpenDemoModal }) => {
                   </span>
                 </div>
                 <div className="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-bold text-xs">
-                  {user.name.charAt(0).toUpperCase()}
+                  {(user?.name || 'User').charAt(0).toUpperCase()}
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
