@@ -2,6 +2,7 @@ import Ticket from '../models/Ticket.js';
 import { triageTicket, regenerateDraft, summarizeThread } from '../services/geminiService.js';
 import { getIsConnected } from '../config/db.js';
 import memoryStore from '../services/memoryStore.js';
+import supabaseService from '../services/supabaseService.js';
 
 export const createTicket = async (req, res, next) => {
   try {
@@ -48,8 +49,8 @@ export const createTicket = async (req, res, next) => {
       } catch (err) {}
     }
 
-    // In-memory
-    const memTicket = memoryStore.createTicket({
+    // In-memory / Supabase storage
+    const memTicket = await supabaseService.createTicket({
       customerId,
       customerName,
       customerEmail,
@@ -110,8 +111,8 @@ export const getTickets = async (req, res, next) => {
       } catch (err) {}
     }
 
-    // In-memory
-    const tickets = memoryStore.findTickets({
+    // In-memory / Supabase storage
+    const tickets = await supabaseService.findTickets({
       customerId,
       status,
       urgency,
@@ -139,7 +140,7 @@ export const getTicketById = async (req, res, next) => {
       } catch (e) {}
     }
 
-    const ticket = memoryStore.findTicketById(req.params.id);
+    const ticket = await supabaseService.findTicketById(req.params.id);
     if (!ticket) {
       return res.status(404).json({ success: false, message: 'Ticket not found' });
     }
@@ -175,7 +176,7 @@ export const addTicketMessage = async (req, res, next) => {
       } catch (e) {}
     }
 
-    const ticket = memoryStore.addMessageToTicket(req.params.id, {
+    const ticket = await supabaseService.addMessage(req.params.id, {
       sender: messageSender,
       senderName,
       text,
@@ -210,7 +211,7 @@ export const updateTicket = async (req, res, next) => {
       } catch (e) {}
     }
 
-    const ticket = memoryStore.updateTicket(req.params.id, { status, priority, assignedAgentId });
+    const ticket = await supabaseService.updateTicket(req.params.id, { status, priority, assignedAgentId });
     if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
 
     res.status(200).json({ success: true, ticket });

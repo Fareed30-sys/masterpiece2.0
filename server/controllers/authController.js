@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import { generateToken } from '../middleware/auth.js';
 import { getIsConnected } from '../config/db.js';
 import memoryStore from '../services/memoryStore.js';
+import supabaseService from '../services/supabaseService.js';
 
 export const register = async (req, res, next) => {
   try {
@@ -24,18 +25,18 @@ export const register = async (req, res, next) => {
       });
     }
 
-    // In-memory fallback
-    const memUserExists = memoryStore.findUserByEmail(lowerEmail);
-    if (memUserExists) {
+    // In-memory / Supabase storage
+    const memUserExists = await supabaseService.findUserByEmail(lowerEmail);
+    if (memUserExists && memUserExists.name && memUserExists.name !== 'New User') {
       return res.status(400).json({ success: false, message: 'Email already registered.' });
     }
-    const user = memoryStore.createUser({ name, email: lowerEmail, password, role, companyName });
-    const token = generateToken(user._id, user.role);
+    const user = await supabaseService.createUser({ name, email: lowerEmail, password, role, companyName });
+    const token = generateToken(user._id || user.id, user.role);
     res.status(201).json({
       success: true,
       message: 'Account registered successfully',
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, companyName: user.companyName },
+      user: { id: user._id || user.id, name: user.name, email: user.email, role: user.role, companyName: user.companyName },
     });
   } catch (error) {
     next(error);
@@ -63,12 +64,12 @@ export const login = async (req, res, next) => {
           }
         }
       } catch (err) {
-        console.warn('[MongoDB] Query failed, falling back to memory store.');
+        console.warn('[MongoDB] Query failed, falling back to data store.');
       }
     }
 
-    // Memory Store fallback
-    const memUser = memoryStore.findUserByEmail(lowerEmail);
+    // In-Memory / Supabase fallback
+    const memUser = await supabaseService.findUserByEmail(lowerEmail);
     if (!memUser || (memUser.password && memUser.password !== password && password !== 'password123')) {
       return res.status(401).json({
         success: false,
@@ -76,13 +77,13 @@ export const login = async (req, res, next) => {
       });
     }
 
-    const token = generateToken(memUser._id, memUser.role);
+    const token = generateToken(memUser._id || memUser.id, memUser.role);
     res.status(200).json({
       success: true,
       message: 'Logged in successfully',
       token,
       user: {
-        id: memUser._id,
+        id: memUser._id || memUser.id,
         name: memUser.name,
         email: memUser.email,
         role: memUser.role,
@@ -103,7 +104,7 @@ export const getMe = async (req, res, next) => {
       } catch (e) {}
     }
 
-    const user = memoryStore.findUserById(req.user._id || req.user.id) || req.user;
+    const user = (await supabaseService.findUserById(req.user._id || req.user.id)) || req.user;
     res.status(200).json({ success: true, user });
   } catch (error) {
     next(error);
